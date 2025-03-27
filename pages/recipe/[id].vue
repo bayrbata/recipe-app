@@ -2,16 +2,18 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { getDoc, doc } from "firebase/firestore";
-import { db } from "~/plugins/firebase";
 
 const route = useRoute();
 const recipeId = route.params.id;
 const recipe = ref(null);
 
+const { $auth, $googleProvider, $facebookProvider, $db } = useNuxtApp();
+
+
 // Fetch the details of the recipe
 const fetchRecipeDetails = async () => {
   try {
-    const recipeDoc = await getDoc(doc(db, "recipes", recipeId));
+    const recipeDoc = await getDoc(doc($db, "recipes", recipeId));
     if (recipeDoc.exists()) {
       recipe.value = { id: recipeDoc.id, ...recipeDoc.data() };
     } else {
