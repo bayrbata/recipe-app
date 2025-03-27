@@ -36,9 +36,13 @@ onMounted(() => {
     <p><strong>Ingredients:</strong> {{ recipe.ingredients }}</p>
     <p><strong>Instructions:</strong> {{ recipe.instructions }}</p>
 
-    <!-- Display image if available -->
     <div v-if="recipe.image">
       <img :src="recipe.image" alt="Recipe Image" style="max-width: 100%; margin-top: 20px;" />
+    </div>
+
+    <div v-if="user && user.uid === recipe.userId">
+      <NuxtLink :to="`/edit-recipe/${recipe.id}`">Edit</NuxtLink>
+      <button @click="deleteRecipe">Delete</button>
     </div>
   </div>
   <div v-else>

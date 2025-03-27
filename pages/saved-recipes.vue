@@ -1,60 +1,42 @@
 <script setup>
-import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
-import { useNuxtApp } from '#app';
-import { getDocs, collection, query, where } from 'firebase/firestore';
-import { db } from '~/plugins/firebase';  // Import your Firestore instance
+import { ref, onMounted } from "vue";
+import { useNuxtApp } from "#app";
+import { getDocs, collection, query, where, deleteDoc, doc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
-const router = useRouter();
-const { $auth, $db, $collection, $addDoc, $getDocs, $deleteDoc, $doc } = useNuxtApp();
-const recipes = ref([]);
+const { $auth, $db } = useNuxtApp();
+const user = ref(null);
+const savedRecipes = ref([]);
 
-// Check if the user is authenticated before fetching saved recipes
-const user = $auth.currentUser;
-if (!user) {
-  router.push('/login');  // Redirect to login if not authenticated
-}
-
-const userId = user ? user.uid : null;
+onAuthStateChanged($auth, (authUser) => {
+  user.value = authUser;
+  if (authUser) {
+    fetchSavedRecipes();
+  }
+});
 
 const fetchSavedRecipes = async () => {
-  if (userId) {
-    const recipeCollection = $collection($db, 'recipes');
-    const q = query(recipeCollection, where('userId', '==', userId));
-
-    try {
-      const querySnapshot = await getDocs(q);
-      const fetchedRecipes = [];
-      querySnapshot.forEach((doc) => {
-        fetchedRecipes.push(doc.data());  // Add each fetched recipe to the array
-      });
-      recipes.value = fetchedRecipes;  // Set the recipes ref to the fetched data
-    } catch (error) {
-      console.error('Error fetching recipes:', error);
-    }
-  }
+  if (!user.value) return;
+  const q = query(collection($db, "saved_recipes"), where("userId", "==", user.value.uid));
+  const querySnapshot = await getDocs(q);
+  savedRecipes.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
 
-// Fetch saved recipes when the page is mounted
-onMounted(() => {
+const removeSavedRecipe = async (id) => {
+  await deleteDoc(doc($db, "saved_recipes", id));
   fetchSavedRecipes();
-});
+};
 </script>
 
 <template>
   <div>
-    <h2>Your Saved Recipes</h2>
-    <div v-if="recipes.length === 0">
-      <p>You don't have any saved recipes yet.</p>
+    <h2>Saved Recipes</h2>
+    <div v-if="savedRecipes.length === 0">
+      <p>No saved recipes yet.</p>
     </div>
-    <div v-else>
-      <ul>
-        <li v-for="(recipe, index) in recipes" :key="index">
-          <h3>{{ recipe.title }}</h3>
-          <p>{{ recipe.ingredients }}</p>
-          <p>{{ recipe.instructions }}</p>
-        </li>
-      </ul>
+    <div v-for="recipe in savedRecipes" :key="recipe.id">
+      <h3>{{ recipe.title }}</h3>
+      <button @click="removeSavedRecipe(recipe.id)">Remove</button>
     </div>
   </div>
 </template>
