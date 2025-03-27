@@ -70,45 +70,46 @@ const logout = async () => {
 
 <template>
   <div class="container py-4">
-    <h2>All Recipes</h2>
-
-    <div>
+    
+    <div style="display:inline-flex">
+      <h2 class="text-center mb-4">All Recipes</h2>
       <!-- Display the login/logout button based on user authentication status -->
-      <div v-if="user">
-        <p>Welcome, {{ user.displayName || user.email }}!</p>
-        <button @click="logout" class="btn btn-danger">Logout</button>
-      </div>
-      <div v-else>
-        <button @click="loginWithGoogle" class="btn btn-primary">Login with Google</button>
-        <button @click="loginWithFacebook" class="btn btn-primary">Login with Facebook</button>
+      <div style="margin:50">
+        <div v-if="user" >
+          <p class="mb-0">Welcome, {{ user.displayName || user.email }}!</p>
+          <button @click="logout" class="btn btn-danger ms-3">Logout</button>
+        </div>
+        <div v-else class="d-flex">
+          <button @click="loginWithGoogle" class="btn btn-primary mx-2">Login with Google</button>
+          <button @click="loginWithFacebook" class="btn btn-primary">Login with Facebook</button>
+        </div>
       </div>
     </div>
 
+
     <!-- If no recipes available -->
-    <div v-if="recipes.length === 0">
+    <div v-if="recipes.length === 0" class="text-center">
       <p>No recipes available.</p>
     </div>
 
-    <!-- Display recipes in cards -->
-    <div class="row">
+    <!-- Display recipes in Bootstrap grid -->
+    <div style="display: inline-flex">
       <div 
         v-for="(recipe, index) in recipes" 
         :key="recipe.id" 
-        class="col-12 col-md-4 mb-4"
+        class="col-12 col-sm-6 col-md-4 mb-4 d-flex align-items-stretch"
       >
-        <div class="card shadow-sm">
+        <div class="card shadow-sm w-100">
           <img
             v-if="recipe.image" 
             :src="recipe.image" 
             class="card-img-top" 
             alt="Recipe Image"
-            style="height: 200px; object-fit: cover;"
           />
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ recipe.title }}</h5>
-            <p class="card-text">{{ recipe.ingredients }}</p>
-            <p class="card-text">{{ recipe.instructions }}</p>
-            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary">
+            <p class="card-text flex-grow-1">{{ recipe.ingredients }}</p>
+            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary mt-auto">
               View Details
             </router-link>
           </div>
@@ -119,26 +120,65 @@ const logout = async () => {
 </template>
 
 <style scoped>
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+/* Style for individual recipe cards */
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
+.card:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Image inside the card */
+.card-img-top {
+  height: 200px; /* Fixed height for uniformity */
+  object-fit: cover; /* Ensure images fit properly */
+}
+
+/* Card body adjustments */
 .card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Space between elements */
   padding: 15px;
 }
 
+/* Title styling */
 .card-title {
   font-size: 1.25rem;
   font-weight: bold;
+  text-align: center;
 }
 
+/* Ingredient text */
 .card-text {
   font-size: 0.875rem;
   color: #555;
+  text-align: justify;
+  flex-grow: 1; /* Allows the text to fill available space */
 }
 
-button {
-  margin-top: 10px;
+/* Button styles */
+.btn {
+  width: 100%;
+  text-align: center;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .col-sm-6 {
+    flex: 0 0 50%; /* 2 cards per row */
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .col-12 {
+    flex: 0 0 100%; /* 1 card per row */
+    max-width: 100%;
+  }
 }
 </style>
