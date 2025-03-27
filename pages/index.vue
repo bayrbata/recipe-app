@@ -1,5 +1,5 @@
 <script setup>
-import { useRouter } from 'vue-router';
+
 import { useNuxtApp } from '#app'; // Access Nuxt app for global dependencies
 import { ref, onMounted } from 'vue';
 import { getDocs, collection } from 'firebase/firestore';
@@ -71,22 +71,8 @@ const logout = async () => {
 <template>
   <div class="container py-4">
     
-    <div style="display:inline-flex">
-      <h2 class="text-center mb-4">All Recipes</h2>
-      <!-- Display the login/logout button based on user authentication status -->
-      <div style="margin:50">
-        <div v-if="user" >
-          <p class="mb-0">Welcome, {{ user.displayName || user.email }}!</p>
-          <button @click="logout" class="btn btn-danger ms-3">Logout</button>
-        </div>
-        <div v-else class="d-flex">
-          <button @click="loginWithGoogle" class="btn btn-primary mx-2">Login with Google</button>
-          <button @click="loginWithFacebook" class="btn btn-primary">Login with Facebook</button>
-        </div>
-      </div>
-    </div>
-
-
+    <h2 class="text-center mb-4">All Recipes</h2>
+    
     <!-- If no recipes available -->
     <div v-if="recipes.length === 0" class="text-center">
       <p>No recipes available.</p>

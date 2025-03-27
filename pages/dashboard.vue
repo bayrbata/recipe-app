@@ -48,6 +48,9 @@ const deleteRecipe = async (id) => {
       <h3>{{ recipe.title }}</h3>
       <p>{{ recipe.ingredients }}</p>
       <button @click="deleteRecipe(recipe.id)">Delete</button>
+      <NuxtLink :to="`/edit-recipe/${recipe.id}`">
+        <button>Edit</button>
+      </NuxtLink>
     </div>
   </div>
 </template>

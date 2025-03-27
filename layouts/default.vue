@@ -29,6 +29,7 @@ const logout = async () => {
     
     <NuxtPage />
   </div>
+
 </template>
 
 <style scoped>
