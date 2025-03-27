@@ -108,7 +108,9 @@ const logout = async () => {
             <h5 class="card-title">{{ recipe.title }}</h5>
             <p class="card-text">{{ recipe.ingredients }}</p>
             <p class="card-text">{{ recipe.instructions }}</p>
-            <button class="btn btn-primary">View Details</button>
+            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary">
+              View Details
+            </router-link>
           </div>
         </div>
       </div>
