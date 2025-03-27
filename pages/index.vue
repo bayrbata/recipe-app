@@ -1,27 +1,30 @@
 <script setup>
-
 import { useNuxtApp } from '#app'; // Access Nuxt app for global dependencies
-import { ref, onMounted } from 'vue';
-import { getDocs, collection } from 'firebase/firestore';
+import { ref, onMounted, computed } from 'vue';
+import { getDocs, collection, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'; // Import necessary functions
 
 // Use Nuxt app to access Firebase services
 const { $auth, $googleProvider, $facebookProvider, $db } = useNuxtApp();
 
-// Reactive variables for user and recipes
+// Reactive variables for user, recipes, savedRecipes, and searchQuery
 const user = ref(null);
 const recipes = ref([]);
+const savedRecipes = ref([]);
+const searchQuery = ref('');
 
 // Listen for authentication state changes
 onAuthStateChanged($auth, (authUser) => {
   user.value = authUser; // Set user value to the current authenticated user
   if (authUser) {
-    router.push('/dashboard'); // Redirect to dashboard if logged in
+    fetchRecipes(); // Fetch all recipes when user is logged in
+    fetchSavedRecipes(); // Fetch saved recipes for the user
   }
 });
 
 // Fetch recipes from Firestore
 const fetchRecipes = async () => {
+  recipes.value = []; // Clear previous recipes before fetching
   try {
     const querySnapshot = await getDocs(collection($db, 'recipes'));
     querySnapshot.forEach((doc) => {
@@ -32,10 +35,41 @@ const fetchRecipes = async () => {
   }
 };
 
-// Fetch recipes when the component is mounted
-onMounted(() => {
-  fetchRecipes();
-});
+// Fetch saved recipes from Firestore for the logged-in user
+const fetchSavedRecipes = async () => {
+  if (user.value) {
+    const savedRecipesSnapshot = await getDocs(collection($db, `users/${user.value.uid}/savedRecipes`));
+    savedRecipes.value = savedRecipesSnapshot.docs.map(doc => doc.data());
+  }
+};
+
+// Save a recipe to the user's saved recipes collection
+const saveRecipe = async (recipe) => {
+  if (user.value) {
+    try {
+      await setDoc(doc($db, `users/${user.value.uid}/savedRecipes`, recipe.id), recipe);
+      savedRecipes.value.push(recipe);
+      console.log('Recipe saved successfully');
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+    }
+  } else {
+    console.log('User must be logged in to save recipes');
+  }
+};
+
+// Remove a saved recipe
+const removeSavedRecipe = async (recipeId) => {
+  if (user.value) {
+    try {
+      await deleteDoc(doc($db, `users/${user.value.uid}/savedRecipes`, recipeId));
+      savedRecipes.value = savedRecipes.value.filter(recipe => recipe.id !== recipeId);
+      console.log('Recipe removed from saved recipes');
+    } catch (error) {
+      console.error('Error removing saved recipe:', error);
+    }
+  }
+};
 
 // Google login
 const loginWithGoogle = async () => {
@@ -66,22 +100,34 @@ const logout = async () => {
     console.error("Logout Error:", error.message);
   }
 };
+
+// Computed property to filter recipes based on the search query
+const filteredRecipes = computed(() => {
+  return recipes.value.filter(recipe => {
+    const query = searchQuery.value.toLowerCase();
+    return recipe.title.toLowerCase().includes(query) || recipe.ingredients.toLowerCase().includes(query);
+  });
+});
 </script>
 
 <template>
   <div class="container py-4">
-    
     <h2 class="text-center mb-4">All Recipes</h2>
-    
-    <!-- If no recipes available -->
-    <div v-if="recipes.length === 0" class="text-center">
-      <p>No recipes available.</p>
+
+    <!-- Search Input -->
+    <div class="mb-4">
+      <input
+        v-model="searchQuery"
+        type="text"
+        class="form-control"
+        placeholder="Search by title or ingredients..."
+      />
     </div>
 
-    <!-- Display recipes in Bootstrap grid -->
+    <!-- Display filtered recipes in Bootstrap grid -->
     <div style="display: inline-flex">
       <div 
-        v-for="(recipe, index) in recipes" 
+        v-for="(recipe, index) in filteredRecipes" 
         :key="recipe.id" 
         class="col-12 col-sm-6 col-md-4 mb-4 d-flex align-items-stretch"
       >
@@ -95,7 +141,18 @@ const logout = async () => {
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ recipe.title }}</h5>
             <p class="card-text flex-grow-1">{{ recipe.ingredients }}</p>
-            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary mt-auto">
+
+            <!-- Save Recipe Button -->
+            <button 
+              class="btn" 
+              :class="savedRecipes.some(saved => saved.id === recipe.id) ? 'btn-danger' : 'btn-secondary'"
+              @click="savedRecipes.some(saved => saved.id === recipe.id) ? removeSavedRecipe(recipe.id) : saveRecipe(recipe)"
+            >
+              {{ savedRecipes.some(saved => saved.id === recipe.id) ? 'Remove' : 'Save Recipe' }}
+            </button>
+
+
+            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary mt-2">
               View Details
             </router-link>
           </div>
