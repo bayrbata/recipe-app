@@ -64,17 +64,43 @@ const submitRecipe = async () => {
 
 <template>
   <div class="container">
-    <h2>Add Recipe</h2>
-    
-    <input v-model="recipe.title" placeholder="Recipe Title" />
-    <textarea v-model="recipe.ingredients" placeholder="Ingredients"></textarea>
-    <textarea v-model="recipe.instructions" placeholder="Instructions"></textarea>
+    <h2 class="text-center mb-4">Add Your Recipe</h2>
 
-    <div>
-      <input v-model="recipe.imageUrl" type="text" placeholder="Paste image URL" />
+    <div class="form-group">
+      <input 
+        v-model="recipe.title" 
+        type="text" 
+        class="form-control" 
+        placeholder="Recipe Title" 
+      />
     </div>
 
-    <button @click="submitRecipe">Save Recipe</button>
+    <div class="form-group">
+      <textarea 
+        v-model="recipe.ingredients" 
+        class="form-control" 
+        placeholder="Ingredients" 
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <textarea 
+        v-model="recipe.instructions" 
+        class="form-control" 
+        placeholder="Instructions" 
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <input 
+        v-model="recipe.imageUrl" 
+        type="text" 
+        class="form-control" 
+        placeholder="Paste image URL (Optional)" 
+      />
+    </div>
+
+    <button @click="submitRecipe" class="btn btn-primary btn-block">Save Recipe</button>
   </div>
 </template>
 
@@ -82,6 +108,57 @@ const submitRecipe = async () => {
 .container {
   max-width: 600px;
   margin: auto;
-  padding: 20px;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-control {
+  padding: 15px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
+
+textarea.form-control {
+  min-height: 150px;
+}
+
+button {
+  padding: 15px;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:focus {
+  outline: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
 }
 </style>

@@ -112,7 +112,6 @@ const filteredRecipes = computed(() => {
   });
 });
 </script>
-
 <template>
   <div class="container py-4">
     <h2 class="text-center mb-4">All Recipes</h2>
@@ -122,25 +121,27 @@ const filteredRecipes = computed(() => {
       <input
         v-model="searchQuery"
         type="text"
-        class="form-control"
+        class="form-control search-input"
         placeholder="Search by title or ingredients..."
       />
     </div>
 
-    <!-- Display filtered recipes in Bootstrap grid -->
-    <div style="display: inline-flex">
+    <!-- Display filtered recipes in responsive grid -->
+    <div class="recipe-grid">
       <div 
         v-for="(recipe, index) in filteredRecipes" 
         :key="recipe.id" 
-        class="col-12 col-sm-6 col-md-4 mb-4 d-flex align-items-stretch"
+        class="recipe-card"
+        @click="navigateToListing(recipe.id)"
       >
         <div class="card shadow-sm w-100">
           <img
             v-if="recipe.image" 
             :src="recipe.image" 
-            class="card-img-top" 
+            class="recipe-image"
             alt="Recipe Image"
           />
+          
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ recipe.title }}</h5>
             <p class="card-text flex-grow-1">{{ recipe.ingredients }}</p>
@@ -148,14 +149,14 @@ const filteredRecipes = computed(() => {
             <!-- Save Recipe Button -->
             <button 
               class="btn" 
-              :class="savedRecipes.some(saved => saved.id === recipe.id) ? 'btn-danger' : 'btn-secondary'"
+              :class="savedRecipes.some(saved => saved.id === recipe.id) ? 'btn-warning' : 'btn-secondary'"
               @click="savedRecipes.some(saved => saved.id === recipe.id) ? removeSavedRecipe(recipe.id) : saveRecipe(recipe)"
             >
-              {{ savedRecipes.some(saved => saved.id === recipe.id) ? 'Remove' : 'Save Recipe' }}
+              {{ savedRecipes.some(saved => saved.id === recipe.id) ? 'Unsave Recipe' : 'Save Recipe' }}
             </button>
 
-
-            <router-link :to="`/recipe/${recipe.id}`" class="btn btn-primary mt-2">
+            <!-- View Details Button -->
+            <router-link :to="`/recipe/${recipe.id}`" class="btn">
               View Details
             </router-link>
           </div>
@@ -166,65 +167,128 @@ const filteredRecipes = computed(() => {
 </template>
 
 <style scoped>
-/* Style for individual recipe cards */
-.card {
+/* Container for the page */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Search Bar Styling */
+.search-input {
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 30px;
+}
+
+/* Recipe Grid Layout */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 0 10px;
+}
+
+/* Individual Recipe Card Styling */
+.recipe-card {
+  background-color: white;
+  padding: 20px;
   border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover {
+.recipe-card:hover {
   transform: translateY(-5px); /* Lift effect on hover */
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Image inside the card */
-.card-img-top {
-  height: 200px; /* Fixed height for uniformity */
-  object-fit: cover; /* Ensure images fit properly */
+.recipe-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
-/* Card body adjustments */
+/* Card Body Styles */
 .card-body {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Space between elements */
-  padding: 15px;
+  justify-content: space-between;
 }
 
-/* Title styling */
 .card-title {
   font-size: 1.25rem;
   font-weight: bold;
-  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
 }
 
-/* Ingredient text */
 .card-text {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #555;
-  text-align: justify;
-  flex-grow: 1; /* Allows the text to fill available space */
+  margin-bottom: 15px;
+  flex-grow: 1;
 }
 
-/* Button styles */
+/* Button Styles */
 .btn {
   width: 100%;
   text-align: center;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
 }
 
-/* Responsive Grid */
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: white;
+  border: none;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .col-sm-6 {
-    flex: 0 0 50%; /* 2 cards per row */
-    max-width: 50%;
+  .recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
 @media (max-width: 576px) {
-  .col-12 {
-    flex: 0 0 100%; /* 1 card per row */
-    max-width: 100%;
+  .recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
   }
 }
 </style>
