@@ -17,9 +17,12 @@ const searchQuery = ref('');
 onAuthStateChanged($auth, (authUser) => {
   user.value = authUser; // Set user value to the current authenticated user
   if (authUser) {
-    fetchRecipes(); // Fetch all recipes when user is logged in
     fetchSavedRecipes(); // Fetch saved recipes for the user
   }
+});
+
+onMounted(() => {
+  fetchRecipes(); // Fetch all recipes when user is logged in
 });
 
 // Fetch recipes from Firestore

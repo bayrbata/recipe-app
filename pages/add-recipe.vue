@@ -1,13 +1,21 @@
 <script setup>
 import { useNuxtApp } from "#app";
-import { saveRecipe } from "~/utils/recipeService"; // Import function
+import { saveRecipe } from "~/utils/recipeService";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage"; // Firebase storage imports
+import { useRouter } from "vue-router"; // ✅ Import router
 
 const { $auth, $db } = useNuxtApp();
+const router = useRouter(); // ✅ Initialize router
 const userId = ref(null);
-const recipe = ref({ title: "", ingredients: "", instructions: "", image: null }); // Add image property
+
+// Reactive state for recipe
+const recipe = ref({
+  title: "",
+  ingredients: "",
+  instructions: "",
+  imageUrl: "" // Holds the manually entered image URL
+});
 
 // Get logged-in user
 onAuthStateChanged($auth, (user) => {
@@ -16,67 +24,64 @@ onAuthStateChanged($auth, (user) => {
   }
 });
 
-// Handle image file upload
-const handleImageUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    recipe.value.image = file; // Store the image file
-  }
-};
-
-// Function to upload the image to Firebase Storage
-const uploadImage = async (file) => {
-  const storage = getStorage();
-  const storagePath = `recipes/${file.name}`;
-  const imageRef = storageRef(storage, storagePath);
-
-  const uploadTask = uploadBytesResumable(imageRef, file);
-
-  return new Promise((resolve, reject) => {
-    uploadTask.on(
-      "state_changed",
-      null,
-      (error) => reject(error),
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then(resolve); // Get download URL after upload
-      }
-    );
-  });
-};
-
-// Submit recipe and save it to Firestore
+// Submit recipe
 const submitRecipe = async () => {
   if (!userId.value) {
-    alert("You must be logged in to save a recipe!");
+    alert("You must be logged in!");
     return;
   }
 
-  let imageUrl = "";
-  if (recipe.value.image) {
-    try {
-      imageUrl = await uploadImage(recipe.value.image); // Upload image and get URL
-    } catch (error) {
-      alert("Image upload failed!");
-      return;
-    }
+  // Check if required fields are filled
+  if (!recipe.value.title || !recipe.value.ingredients || !recipe.value.instructions) {
+    alert("Please fill in all fields!");
+    return;
   }
 
-  const recipeData = { ...recipe.value, image: imageUrl }; // Add image URL to recipe data
-  await saveRecipe($db, userId.value, recipeData); // Save recipe with image URL
-  alert("Recipe saved successfully!");
+  // Save recipe
+  const recipeData = {
+    title: recipe.value.title,
+    ingredients: recipe.value.ingredients,
+    instructions: recipe.value.instructions,
+    image: recipe.value.imageUrl || "", // Store empty string if no image
+    userId: userId.value
+  };
+
+  try {
+    await saveRecipe($db, userId.value, recipeData);
+    alert("Recipe saved successfully!");
+    
+    // Clear the form
+    recipe.value = { title: "", ingredients: "", instructions: "", imageUrl: "" };
+
+    // ✅ Redirect to the dashboard
+    router.push("/dashboard");
+  } catch (error) {
+    alert("Failed to save recipe!");
+    console.error("Error saving recipe:", error);
+  }
 };
 </script>
 
 <template>
-  <div>
+  <div class="container">
     <h2>Add Recipe</h2>
+    
     <input v-model="recipe.title" placeholder="Recipe Title" />
     <textarea v-model="recipe.ingredients" placeholder="Ingredients"></textarea>
     <textarea v-model="recipe.instructions" placeholder="Instructions"></textarea>
-    
-    <!-- Image Upload -->
-    <input type="file" accept="image/*" @change="handleImageUpload" />
+
+    <div>
+      <input v-model="recipe.imageUrl" type="text" placeholder="Paste image URL" />
+    </div>
 
     <button @click="submitRecipe">Save Recipe</button>
   </div>
 </template>
+
+<style scoped>
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+</style>

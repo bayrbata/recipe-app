@@ -3,6 +3,8 @@ import { defineNuxtPlugin } from "#app";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore } from "firebase/firestore";  // Import Firestore
+import { getStorage } from "firebase/storage";
+
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,6 +21,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
+const storage = getStorage(app); // Initialize Firebase Storage
 
 // Initialize Firestore
 const db = getFirestore(app);
@@ -26,6 +29,7 @@ const db = getFirestore(app);
 export default defineNuxtPlugin(() => {
   return {
     provide: {
+      storage,
       auth,
       googleProvider,
       facebookProvider,
