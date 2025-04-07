@@ -4,30 +4,26 @@ import { ref, onMounted, computed } from 'vue';
 import { getDocs, collection, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'; // Import necessary functions
 
-// Use Nuxt app to access Firebase services
 const { $auth, $googleProvider, $facebookProvider, $db } = useNuxtApp();
 
-// Reactive variables for user, recipes, savedRecipes, and searchQuery
 const user = ref(null);
 const recipes = ref([]);
 const savedRecipes = ref([]);
 const searchQuery = ref('');
 
-// Listen for authentication state changes
 onAuthStateChanged($auth, (authUser) => {
-  user.value = authUser; // Set user value to the current authenticated user
+  user.value = authUser; 
   if (authUser) {
-    fetchSavedRecipes(); // Fetch saved recipes for the user
+    fetchSavedRecipes(); 
   }
 });
 
 onMounted(() => {
-  fetchRecipes(); // Fetch all recipes when user is logged in
+  fetchRecipes();
 });
 
-// Fetch recipes from Firestore
 const fetchRecipes = async () => {
-  recipes.value = []; // Clear previous recipes before fetching
+  recipes.value = []; 
   try {
     const querySnapshot = await getDocs(collection($db, 'recipes'));
     querySnapshot.forEach((doc) => {
@@ -38,7 +34,6 @@ const fetchRecipes = async () => {
   }
 };
 
-// Fetch saved recipes from Firestore for the logged-in user
 const fetchSavedRecipes = async () => {
   if (user.value) {
     const savedRecipesSnapshot = await getDocs(collection($db, `users/${user.value.uid}/savedRecipes`));
@@ -46,7 +41,6 @@ const fetchSavedRecipes = async () => {
   }
 };
 
-// Save a recipe to the user's saved recipes collection
 const saveRecipe = async (recipe) => {
   if (user.value) {
     try {
@@ -61,7 +55,6 @@ const saveRecipe = async (recipe) => {
   }
 };
 
-// Remove a saved recipe
 const removeSavedRecipe = async (recipeId) => {
   if (user.value) {
     try {
@@ -104,7 +97,6 @@ const logout = async () => {
   }
 };
 
-// Computed property to filter recipes based on the search query
 const filteredRecipes = computed(() => {
   return recipes.value.filter(recipe => {
     const query = searchQuery.value.toLowerCase();
@@ -116,7 +108,6 @@ const filteredRecipes = computed(() => {
   <div class="container py-4">
     <h2 class="text-center mb-4">All Recipes</h2>
 
-    <!-- Search Input -->
     <div class="mb-4">
       <input
         v-model="searchQuery"
@@ -126,7 +117,6 @@ const filteredRecipes = computed(() => {
       />
     </div>
 
-    <!-- Display filtered recipes in responsive grid -->
     <div class="recipe-grid">
       <div 
         v-for="(recipe, index) in filteredRecipes" 
@@ -192,7 +182,6 @@ const filteredRecipes = computed(() => {
   padding: 0 10px;
 }
 
-/* Individual Recipe Card Styling */
 .recipe-card {
   background-color: white;
   padding: 20px;
@@ -202,7 +191,7 @@ const filteredRecipes = computed(() => {
 }
 
 .recipe-card:hover {
-  transform: translateY(-5px); /* Lift effect on hover */
+  transform: translateY(-5px);
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
 }
 
