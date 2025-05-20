@@ -26,6 +26,7 @@ const fetchRecipes = async () => {
   recipes.value = []; 
   try {
     const querySnapshot = await getDocs(collection($db, 'recipes'));
+     console.log('✅ Query success. Found docs:', querySnapshot.docs.length)
     querySnapshot.forEach((doc) => {
       recipes.value.push({ id: doc.id, ...doc.data() });
     });
